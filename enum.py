@@ -79,6 +79,9 @@ class EnumSetupDict (dict):
                 raise TypeError("Must set a value for this type of enum")
             if not value._name:
                 value._name = item
+        elif item.startswith('_'):
+            # Don't mess with private/system attributes.
+            pass
         elif self.basetype and isinstance(value, self.basetype):
             value = TypeEnumStub(self.basetype, value, item)
         return dict.__setitem__(self, item, value)
@@ -244,6 +247,11 @@ class TypeEnumType (EnumType):
 
 
 class TypeEnum (Enum, metaclass=TypeEnumType, basetype=None):
+    def __str__(self):
+        if issubclass(self.basetype, str):
+            return self.basetype.__str__(self)
+        return Enum.__str__(self)
+
     def __repr__(self):
         return "<{}.{} ({!r})>".format(self.__class__, self.name, self.value)
 

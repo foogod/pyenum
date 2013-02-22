@@ -42,8 +42,10 @@ class Shade (TypeEnum, basetype=float):
     LIGHTGRAY = 0.75
     WHITE = 1.0
 
-# (Note: string enums don't quite work right yet, but I intend to fix that
-# shortly)
+class Greeting (TypeEnum, basetype=str):
+    HELLO = "Hello"
+    HI = "Hi"
+    YODAWG = "Yo, dawg!"
 
 # Enums are hashable, and can be used as dictionary keys.  Even different enums
 # with the same underlying value can be used as different keys (because they do
