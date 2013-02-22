@@ -9,6 +9,10 @@
 #
 # This module is not recommended for general use.
 
+__all__ = ['Enum', 'TypeEnum', 'IntEnum']
+
+KWARG_ATTR_MAP = {'doc': '__doc__'}
+
 
 class EnumStub:
     def __init__(self, basetype=None, value=None, name=None, kwargs={}):
@@ -105,14 +109,15 @@ class EnumType (type):
     def __repr__(cls):
         return "<enum class: {}.{}>".format(cls.__module__, cls.__name__)
 
-    def new(cls, name, *, doc=None):
+    def new(cls, name, **kwargs):
         if cls.get(name):
             raise ValueError("Duplicate enum name: {!r}".format(name))
         elif hasattr(cls, name):
             raise ValueError("Invalid enum name: {!r}".format(name))
         self = object.__new__(cls)
+        for k, v in kwargs.items():
+            setattr(self, KWARG_ATTR_MAP.get(k, k), v)
         self.name = name
-        self.__doc__ = doc
         setattr(cls, name, self)
         return self
 
@@ -205,7 +210,7 @@ class TypeEnumType (EnumType):
                 del cls._value_map[prev.value]
         return EnumType.__delattr__(cls, attr)
 
-    def new(cls, name, value, *, doc=None):
+    def new(cls, name, value, **kwargs):
         basetype = cls.basetype
         if basetype is None:
             basetype = object
@@ -220,8 +225,9 @@ class TypeEnumType (EnumType):
             raise ValueError("Invalid enum name: {!r}".format(name))
         elif cls.get(self) is not None:
             raise ValueError("Duplicate enum value: {!r}".format(value))
+        for k, v in kwargs.items():
+            setattr(self, KWARG_ATTR_MAP.get(k, k), v)
         self.name = name
-        self.__doc__ = doc
         setattr(cls, name, self)
         return self
 
