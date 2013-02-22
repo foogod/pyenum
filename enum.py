@@ -1,6 +1,6 @@
 # Name:   enum.py
 # Author: Alex Stewart <foogod@gmail.com>
-# Date:   Feb 2, 2013
+# Date:   Feb 22, 2013
 #
 # Note: This is a quick reference implementation of some ideas from a
 # discussion on the python-ideas maillist.  It is fairly full-featured, but not
