@@ -110,7 +110,7 @@ class EnumType (type):
         return "<enum class: {}.{}>".format(cls.__module__, cls.__name__)
 
     def new(cls, name, **kwargs):
-        if cls.get(name):
+        if cls.get(name) is not None:
             raise ValueError("Duplicate enum name: {!r}".format(name))
         elif hasattr(cls, name):
             raise ValueError("Invalid enum name: {!r}".format(name))
@@ -122,10 +122,14 @@ class EnumType (type):
         return self
 
     def get(cls, item, default=None):
-        result = getattr(cls, item, None)
-        if isinstance(result, Enum) and issubclass(cls, result.__class__):
-            return result
+        if isinstance(item, str):
+            result = getattr(cls, item, None)
+            if isinstance(result, Enum) and issubclass(cls, result.__class__):
+                return result
         return default
+
+    def get_value(cls, value, default=None):
+        return cls.get(value, default)
 
     def __getitem__(cls, item):
         result = cls.get(item)
@@ -149,11 +153,10 @@ class EnumType (type):
 
 class Enum (metaclass=EnumType):
     def __new__(cls, value):
-        try:
-            return cls[value]
-        except KeyError:
-            pass
-        raise ValueError("No such enum in {}: {!r}".format(cls, value))
+        result = cls.get_value(value)
+        if result is None:
+            raise ValueError("No equivalent {} value: {!r}".format(cls, value))
+        return result
 
     def __str__(self):
         return self.name
@@ -223,7 +226,7 @@ class TypeEnumType (EnumType):
                 raise ValueError("Duplicate enum name: {!r}".format(name))
         elif hasattr(cls, name):
             raise ValueError("Invalid enum name: {!r}".format(name))
-        elif cls.get(self) is not None:
+        elif cls.get_value(self) is not None:
             raise ValueError("Duplicate enum value: {!r}".format(value))
         for k, v in kwargs.items():
             setattr(self, KWARG_ATTR_MAP.get(k, k), v)
@@ -231,16 +234,12 @@ class TypeEnumType (EnumType):
         setattr(cls, name, self)
         return self
 
-    def get(cls, item, default=None):
-        if isinstance(item, str):
-            result = EnumType.get(cls, item)
-            if result is not None:
-                return result
+    def get_value(cls, value, default=None):
         for c in cls.__mro__:
             if issubclass(c, TypeEnum):
-                name = c._value_map.get(item)
+                name = c._value_map.get(value)
                 if name:
-                    return EnumType.get(cls, name, default)
+                    return cls.get(name, default)
         return default
 
 
